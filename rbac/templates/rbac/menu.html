@@ -1,0 +1,9 @@
+{# Django模板语法单行注释 #}
+
+{% for item in menu_list %} {#注释：使用reversed可以翻转for循环 {% for item in menu_list reversed %} #}
+
+<li class="static-menu" style="float:left;">
+    <a href="{{ item.url }}" style="{{item.font}} {{item.bk_gd}}">{{ item.title }}</a>
+</li>
+
+{% endfor %}

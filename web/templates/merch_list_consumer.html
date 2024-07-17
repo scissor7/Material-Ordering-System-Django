@@ -1,0 +1,177 @@
+{% extends 'layout.html' %}
+
+{% block css %}
+.glyphicon {
+line-height:1.45;
+}
+
+.ulleft{
+margin-left:100px;
+margin-top:0;
+}
+
+{% endblock %}
+
+{% block content %}
+
+<div class="container">    <!--表单区-->
+
+    <div style="margin-bottom:10px" class="clearfix">
+        <div class="col-lg-6" style="float:right;width:300px;">
+            <form method="get">
+                <div class="input-group">
+                    <input type="text" name="search" value="{{search_data}}" class="form-control" placeholder="输入商品名称进行搜索">
+                    <span class="input-group-btn">
+                    <button class="btn btn-default" type="submit">
+                    <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+                </button>
+                </span>
+                </div>
+            </form>
+        </div>   <!--搜索框-->
+    </div>
+
+    <div class="panel panel-default" style="margin-top:10px;">
+        <div class="panel-heading"><span class="glyphicon glyphicon-th-list" aria-hidden="true"></span> 商品列表</div>
+        <!--表单的标题-->
+        <!--<div class="panel-body"></div>此标签为表单的内容部分-->
+        <table class="table table-bordered table-hover">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>商品名称</th>
+                <th>价格(元)</th>
+                <th>库存数量</th>
+                <th>单位</th>
+                <th>卖家</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for obj in queryset %}
+            <tr>
+                <th scope="row">{{obj.id}}</th>
+                <td>{{obj.title}}</td>
+                <td>{{obj.price}}</td>
+                <td>{{obj.num}}</td>
+                <td>{{obj.unit}}</td>
+                <td>{{obj.broker.name}}</td>
+                <td>
+                    <input uid="{{ obj.id }}" class="btn btn-primary btn-xs btn-buy" type="button" value="购买">
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>  <!--表格-->
+    </div>  <!--商品列表-->
+</div>
+<div class="container">
+    <ul class="pagination">
+        {{ page_string }}
+    </ul>
+</div>
+
+<!-- 购买商品对话框 -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">购买商品</h4>
+            </div>
+            <div class="modal-body">  <!--模态框内容-->
+                <form id="formBuy">
+                    <div class="clearfix">
+                        {% for field in form %}
+                        <div class="col-xs-6">
+                            <div class="form-group" style="position: relative;margin-bottom: 20px;">
+                                <label>{{ field.label }}</label>
+                                {{ field }}
+                                <span class="error-msg" style="color: red;position: absolute;"></span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button id="btnSave" type="button" class="btn btn-primary">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript">
+// 定义全局变量
+    var BUY_ID;
+
+
+    $(function () {
+        bindBtnBuyEvent();
+        bindBtnConfirmBuyEvent();    //点击对话框中的确定按钮确认购买
+    })
+
+    function bindBtnBuyEvent() {
+        $(".btn-buy").click(function () {
+
+            // 拿到该行的商品ID
+            var uid = $(this).attr("uid");
+            BUY_ID = uid;
+
+            // 清空对话框中的数据
+            $("#formBuy")[0].reset();
+
+            // 点击购买按钮，显示对话框。
+            $('#myModal').modal('show');
+        });
+    }
+
+
+    function bindBtnConfirmBuyEvent() {
+
+        $("#btnSave").click(function () {
+
+            $(".error-msg").empty();
+
+            //向后台发送请求 (添加的Ajax请求)
+            $.ajax({
+                url: '/merch/buy/' + '?uid=' + BUY_ID,
+                type: "post",
+                data: $("#formBuy").serialize(),
+                dataType: "JSON",
+                success: function (res) {
+                    if (res.status) {
+                        alert("购买成功");
+                        // 清空表单  $("#formBuy")是jQuery对象 -> $("#formBuy")[0] DOM对象
+                        $("#formBuy")[0].reset();
+                        // 关闭对话框
+                        $('#myModal').modal('hide');
+                        //用JS代码实现页面刷新
+                        location.reload();
+                    }else {
+                        if (res.tips) {
+                            alert(res.tips);
+                        } else {
+                            $.each(res.error, function (name, error_list) {
+                                //console.log(res);
+                                // res.error是一个字典,如{title:['这个字段是必填项。'],price:['...'],status:['...']}
+                                // res.error是要循环的东西,name代表键，error_list代表值
+                                $("#id_" + name).next().text(error_list[0]);
+                                // modelform生成输入框时，会自动为框生成一个属性，格式为id_+标签的name属性
+                                // 在html中事先加入存放错误的标签<span>，并放在输入框的后面,可以用.next()拿到
+                            })
+                        }
+                    }
+                }
+            })
+        })
+    }
+
+
+</script>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="{% static 'web/plugins/bootstrap-3.4.1/css/bootstrap.css' %}">
+    <link rel="stylesheet" href="{% static 'web/plugins/font-awesome-4.7.0/css/font-awesome.css' %}">
+    <style>
+        .a1{
+            margin-top:40px;
+            }
+
+    </style>
+</head>
+
+<body>
+<!-- 新建/编辑用户和重置密码的通用页面 -->
+<div class="container a1">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">{{title}}</h3>
+        </div>
+        <div class="panel-body">
+            <form method="POST" novalidate>
+                {% csrf_token %}
+                {% for field in form %}
+                <div class="col-xs-12">
+                    <div class="form-group">
+                        {{field.label}}
+                        {{field}}
+                        <span style="color:red; ">{{field.errors.0}}</span>
+                    </div>
+                </div>
+                {% endfor %}
+                <div class="col-xs-12">
+                    <button type="submit" class="btn btn-success">提 交</button>    <!--按钮-->
+                </div>
+            </form>
+        </div>    <!--表单内容-->
+    </div>
+    <div class="col-xs-9">
+        <p5 style='color:red;display:{{tip}}'>注意！更改用户名或密码后会跳转回登录界面重新登录</p5>
+    </div>
+    <div class="col-xs-2">
+        <a href="/login/" class="btn btn-primary" style="display:{{attr_login}}">返回登录页面</a>    <!--按钮-->
+        <a href="/index/" class="btn btn-primary" style="display:{{attr_index}}">返回主页</a>
+    </div>
+</div>
+
+
+<script src="{% static 'web/js/jquery-3.6.0.min.js' %}"></script>
+<script src="{% static 'web/plugins/bootstrap-3.4.1/js/bootstrap.min.js' %}"></script>
+{% block js %}
+{% endblock %}
+</body>
+</html>

@@ -1,0 +1,5 @@
+
+.static-menu a.active {
+    border: 2px solid red;
+}
+

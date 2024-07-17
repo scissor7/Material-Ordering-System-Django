@@ -1,0 +1,255 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block css %}
+.glyphicon {
+line-height:1.45;
+}
+
+.ulleft{
+margin-left:100px;
+margin-top:0;
+}
+
+body{
+    background-image: url("{% static 'web/img/6.jpg' %}");
+    background-size: 100% 100%;
+    background-repeat: repeat;
+    }
+
+{% endblock %}
+
+{% block content %}
+
+<div class="container">    <!--表单区-->
+
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">消费者需求饼状图</h3>
+        </div>
+        <div class="panel-body">
+            <div class="col-lg-12">
+                <div id="m1" style="width:100%;height:650px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">消费者需求词云</h3>
+        </div>
+        <div class="panel-body">
+            <div class="col-lg-12">
+                <div id="m2" style="width:100%;height:350px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-bottom:10px" class="clearfix">
+        <div class="col-lg-6" style="float:right;width:300px;">
+            <form method="get">
+                <div class="input-group">
+                    <input type="text" name="search" value="{{search_data}}" class="form-control"
+                           placeholder="输入商品名称进行搜索">
+                    <span class="input-group-btn">
+                    <button class="btn btn-default" type="submit">
+                    <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+                </button>
+                </span>
+                </div>
+            </form>
+        </div>   <!--搜索框-->
+    </div>
+
+    <div class="panel panel-default" style="margin-top:10px;">
+        <div class="panel-heading"><span class="glyphicon glyphicon-th-list" aria-hidden="true"></span> 商品列表</div>
+        <!--表单的标题-->
+        <!--<div class="panel-body"></div>此标签为表单的内容部分-->
+        <table class="table table-bordered table-hover">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>商品名称</th>
+                <th>类别</th>
+                <th>需求数量</th>
+                <th>单位</th>
+                <th>消费者</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for obj in queryset %}
+            <tr>
+                <th scope="row">{{obj.id}}</th>
+                <td>{{obj.title}}</td>
+                <td>{{obj.get_category_display}}</td>
+                <td>{{obj.num}}</td>
+                <td>{{obj.unit}}</td>
+                <td>{{obj.buyer.name}}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>  <!--表格-->
+    </div>  <!--订单列表-->
+</div>
+<div class="container">
+    <ul class="pagination">
+        {{ page_string }}
+    </ul>
+</div>
+
+{% endblock %}
+
+
+{% block js %}
+<script src="{% static 'web/js/echarts.js' %}"></script>
+<script src="{% static 'web/js/echarts-wordcloud.js' %}"></script>
+<script type="text/javascript">
+    $(function(){
+        initBar();
+        init_word_cloud();
+    })
+
+    function initBar(){
+        // 基于准备好的dom，初始化echarts实例
+        var myChart = echarts.init(document.getElementById('m1'));
+
+        // 指定图表的配置项和数据
+
+
+        var option = {
+            title: {
+                text: '消费者需求结构占比',
+                textAlign:"auto",
+                left:"center"
+            },
+            tooltip: {
+                trigger: 'item'
+                },
+
+            legend: {
+            top: 'bottom'
+            },
+            toolbox: {
+                show: true,
+                feature: {
+                  mark: { show: true },
+                  dataView: { show: true, readOnly: false },
+                  restore: { show: true },
+                  saveAsImage: { show: true }
+                }
+            },
+            series: [
+                  {
+                      name: '数量',
+                      type: 'pie',
+                      radius: [50, 250],
+                      center: ['50%', '50%'],
+                      roseType: 'area',
+                      itemStyle: {borderRadius: 8}
+                      ,
+                      data: [
+                        { value: 40, name: 'rose 1' },
+                        { value: 38, name: 'rose 2' },
+                        { value: 32, name: 'rose 3' },
+                        { value: 30, name: 'rose 4' },
+                        { value: 28, name: 'rose 5' },
+                        { value: 26, name: 'rose 6' },
+                        { value: 22, name: 'rose 7' },
+                        { value: 18, name: 'rose 8' }
+                      ]
+                  }
+            ]
+        };
+
+        $.ajax({
+                url: "/chart/pie/",
+                type: "get",
+                dataType: "JSON",
+                success: function (res) {
+                    if (res.status) {
+                        console.log(res);
+                        option.series[0].data = res.data;
+                        // 使用刚指定的配置项和数据显示图表。
+                        myChart.setOption(option);
+                    }
+                }
+        })
+    }
+
+
+
+    function init_word_cloud() {
+            var myChart = echarts.init(document.getElementById('m2'));
+            var keywords = [
+                            {"name":"阳光活力","value":5.80},
+                            {"name":"初恋","value":3.09},
+                            {"name":"英俊潇洒","value":24.71},
+                            {"name":"霸气","value":6.33},
+                            {"name":"腼腆","value":2.55},
+                            {"name":"青春","value":8.04},
+                            {"name":"萌","value":6.97},
+                            {"name":"认真","value":2.53},
+                            {"name":"古典","value":2.49},
+                            {"name":"温柔","value":3.91},
+                            {"name":"有个性","value":3.25},
+                            {"name":"可爱","value":9.93},
+                            {"name":"幽默诙谐","value":3.65}]
+
+            var option = {
+                tooltip: {
+                trigger: 'item'
+                },
+                series: [{
+                    type: 'wordCloud',
+                    //maskImage: maskImage,
+                    sizeRange: [15, 80],
+                    rotationRange: [0, 0],
+                    rotationStep: 45,
+                    gridSize: 8,
+                    shape: 'circle',
+                    width: '100%',
+                    height: '100%',
+                    textStyle: {
+                        color: function () {
+                            return 'rgb(' + [
+                                Math.round(Math.random() * 160),
+                                Math.round(Math.random() * 160),
+                                Math.round(Math.random() * 160)
+                            ].join(',') + ')';
+                        },
+                        emphasis: {
+                            shadowBlur: 10,
+                            shadowColor: '#333'
+                        }
+                    },
+                    data: keywords
+                }]
+            };
+            $.ajax({
+                url: "/chart/word_cloud/",
+                type: "get",
+                dataType: "JSON",
+                success: function (res) {
+                    if (res.status) {
+                        console.log(res);
+                        option.series[0].data = res.data;
+                        // 使用刚指定的配置项和数据显示图表。
+                        myChart.setOption(option);
+                    }
+                }
+            })
+
+            window.addEventListener("resize", function() {
+                myChart.resize();
+            });
+
+    }
+
+
+
+
+
+
+
+</script>
+{% endblock %}

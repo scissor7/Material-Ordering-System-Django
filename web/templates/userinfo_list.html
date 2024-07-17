@@ -1,0 +1,162 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+
+<div class="container" style="margin-top:15px;">    <!--表单区-->
+    <div class="panel panel-default">
+        <div class="panel-heading"><span class="glyphicon glyphicon-th-list" aria-hidden="true"></span> 用户信息表</div>
+        <!--表单的标题-->
+        <!--<div class="panel-body"></div>此标签为表单的内容部分-->
+        <table class="table table-bordered table-hover">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>姓名</th>
+                <th>身份</th>
+                <th>电话号码</th>
+                <th>地址</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            <tr>
+                <th scope="row">{{queryset.id}}</th>
+                <td>{{queryset.name}}</td>
+                <td>{% for node in queryset.roles.all %}
+                    {{node.title}}
+                    {% endfor %}
+                </td>
+                <td>{{queryset.telephone}}</td>
+                <td>{{queryset.address}}</td>
+                <td>
+                    <input uid="{{ queryset.id }}" id="btn-edit" class="btn btn-primary btn-xs btn-edit" type="button"
+                           value="编辑">
+                </td>
+            </tr>
+
+            </tbody>
+        </table>  <!--表格-->
+    </div>  <!--订单列表-->
+</div>
+
+
+<!-- 新建/编辑 用户信息对话框 -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">编辑个人信息</h4>
+            </div>
+            <div class="modal-body">  <!--模态框内容-->
+                <form id="formEdit">
+                    <div class="clearfix">
+                        {% for field in form %}
+                        <div class="col-xs-6">
+                            <div class="form-group" style="position: relative;margin-bottom: 20px;">
+                                <label>{{ field.label }}</label>
+                                {{ field }}
+                                <span class="error-msg" style="color: red;position: absolute;"></span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button id="btnSave" type="button" class="btn btn-primary">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript">
+    // 定义全局变量
+    var EDIT_ID;
+
+    $(function () {
+        bindBtnSaveEvent();
+        bindBtnEditEvent();
+    })
+
+
+    function bindBtnSaveEvent() {
+        $("#btnSave").click(function () {
+
+            $(".error-msg").empty();
+            // 每次点击都清空标签上的错误信息
+
+            //向后台发送请求 (添加的Ajax请求)
+            $.ajax({
+                url: '/userinfo/edit/' + '?uid=' + EDIT_ID,
+                type: "post",
+                data: $("#formEdit").serialize(),
+                dataType: "JSON",
+                success: function (res) {
+                    if (res.status) {
+                        // 清空表单  $("#formEdit")是jQuery对象(指ID为formEdit的表单) -> $("#formEdit")[0] DOM对象
+                        // jQuery对象没有置空的功能,所以要先转换成DOM对象,因为DOM对象有reset()可以置空
+                        $("#formEdit")[0].reset();
+                        // 关闭对话框
+                        $('#myModal').modal('hide');
+                        //用JS代码实现页面刷新
+                        location.reload();
+                    }else {
+                        if (res.tips) {
+                            alert(res.tips);
+                        } else {
+                            $.each(res.error, function (name, error_list) {
+                                // console.log(name,data);
+                                // res.error是一个字典,如{title:['这个字段是必填项。'],price:['...'],status:['...']}
+                                // res.error是要循环的东西,name代表键，error_list代表值
+                                $("#id_" + name).next().text(error_list[0]);
+                                // modelform生成输入框时，会自动为框生成一个属性，格式为id_+标签的name属性
+                                // 在html中事先加入存放错误的标签<span>，并放在输入框的后面,可以用.next()拿到
+                            })
+                        }
+                    }
+                }
+            })
+        })
+    }
+
+
+    function bindBtnEditEvent(){
+        $("#btn-edit").click(function () {
+            // 清空对话框中的数据
+            $("#formEdit")[0].reset();
+            var uid = $(this).attr("uid");
+            EDIT_ID = uid;
+
+            $.ajax({
+                url: '/userinfo/detail/',
+                type: "GET",
+                data: {uid:uid},
+                dataType: "JSON",
+                success: function (res) {
+                    if (res.status){
+                        // 将数据赋值到对话框中的标签中。
+                        $.each(res.data, function (name, value) {
+                        //console.log(res.data);
+                        $("#id_" + name).val(value);
+                        })
+                        //点击编辑，显示对话框
+                        $('#myModal').modal('show');
+                    }else{
+                        alert(res.error);
+                    }
+                }
+            })
+        });
+    }
+
+
+</script>
+{% endblock %}

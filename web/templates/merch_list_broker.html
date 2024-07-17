@@ -1,0 +1,69 @@
+{% extends 'layout.html' %}
+
+{% block css %}
+.glyphicon {
+line-height:1.45;
+}
+
+.ulleft{
+margin-left:100px;
+margin-top:0;
+}
+{% endblock %}
+
+{% block content %}
+
+<div class="container">    <!--表单区-->
+
+    <div style="margin-bottom:10px" class="clearfix">
+        <div class="col-lg-6" style="float:right;width:300px;">
+            <form method="get">
+                <div class="input-group">
+                    <input type="text" name="search" value="{{search_data}}" class="form-control" placeholder="输入商品名称进行搜索">
+                    <span class="input-group-btn">
+                    <button class="btn btn-default" type="submit">
+                    <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+                </button>
+                </span>
+                </div>
+            </form>
+        </div>   <!--搜索框-->
+    </div>
+
+    <div class="panel panel-default" style="margin-top:10px;">
+        <div class="panel-heading"><span class="glyphicon glyphicon-th-list" aria-hidden="true"></span> 商品列表</div>
+        <!--表单的标题-->
+        <!--<div class="panel-body"></div>此标签为表单的内容部分-->
+        <table class="table table-bordered table-hover">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>商品名称</th>
+                <th>价格(元)</th>
+                <th>库存数量</th>
+                <th>单位</th>
+                <th>卖家</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for obj in queryset %}
+            <tr>
+                <th scope="row">{{obj.id}}</th>
+                <td>{{obj.title}}</td>
+                <td>{{obj.price}}</td>
+                <td>{{obj.num}}</td>
+                <td>{{obj.unit}}</td>
+                <td>{{obj.broker.name}}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>  <!--表格-->
+    </div>  <!--订单列表-->
+</div>
+<div class="container">
+    <ul class="pagination">
+        {{ page_string }}
+    </ul>
+</div>
+
+{% endblock %}
